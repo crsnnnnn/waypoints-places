@@ -64,13 +64,21 @@ jobs:
         with:
           path: out
           merge-multiple: true
-      - name: Manifest
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          python3 - <<'PY'
+          tag="places-$(date -u +%Y-%m-%d)"
+          # The manifest names the dated release, so the app reads tiles one
+          # redirect closer than through releases/latest.
+          TAG="$tag" python3 - <<'PY'
           import json, os, datetime
+          repo = os.environ["GITHUB_REPOSITORY"]
+          tag = os.environ["TAG"]
           regions = json.load(open("regions.json"))
           manifest = {
               "baked": datetime.date.today().isoformat(),
+              "base": f"https://github.com/{repo}/releases/download/{tag}",
               "license": "ODbL 1.0, with data from OpenStreetMap contributors, All the Places and Overture Maps",
               "regions": [
                   {"name": r["name"], "bbox": r["bbox"], "file": r["name"] + ".pmtiles",
@@ -80,11 +88,6 @@ jobs:
           }
           json.dump(manifest, open("out/manifest.json", "w"), indent=1)
           PY
-      - name: Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          tag="places-$(date -u +%Y-%m-%d)"
           gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$tag" out/*.pmtiles out/manifest.json --latest \
             --title "Places $(date -u +%Y-%m-%d)" \
