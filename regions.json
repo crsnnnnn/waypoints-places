@@ -1,0 +1,7 @@
+[
+  {
+    "name": "romania",
+    "bbox": [20.2, 43.6, 29.8, 48.3],
+    "osm": "https://download.geofabrik.de/europe/romania-latest.osm.pbf"
+  }
+]
